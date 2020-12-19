@@ -11,18 +11,26 @@ class Note extends DataClass implements Insertable<Note> {
   final int id;
   final String title;
   final String message;
-  Note({@required this.id, @required this.title, @required this.message});
+  final DateTime getDate;
+  Note(
+      {@required this.id,
+      @required this.title,
+      @required this.message,
+      this.getDate});
   factory Note.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final stringType = db.typeSystem.forDartType<String>();
+    final dateTimeType = db.typeSystem.forDartType<DateTime>();
     return Note(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       title:
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}title']),
       message:
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}message']),
+      getDate: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}get_date']),
     );
   }
   @override
@@ -37,6 +45,9 @@ class Note extends DataClass implements Insertable<Note> {
     if (!nullToAbsent || message != null) {
       map['message'] = Variable<String>(message);
     }
+    if (!nullToAbsent || getDate != null) {
+      map['get_date'] = Variable<DateTime>(getDate);
+    }
     return map;
   }
 
@@ -48,6 +59,9 @@ class Note extends DataClass implements Insertable<Note> {
       message: message == null && nullToAbsent
           ? const Value.absent()
           : Value(message),
+      getDate: getDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(getDate),
     );
   }
 
@@ -58,6 +72,7 @@ class Note extends DataClass implements Insertable<Note> {
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       message: serializer.fromJson<String>(json['message']),
+      getDate: serializer.fromJson<DateTime>(json['getDate']),
     );
   }
   @override
@@ -67,69 +82,83 @@ class Note extends DataClass implements Insertable<Note> {
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
       'message': serializer.toJson<String>(message),
+      'getDate': serializer.toJson<DateTime>(getDate),
     };
   }
 
-  Note copyWith({int id, String title, String message}) => Note(
+  Note copyWith({int id, String title, String message, DateTime getDate}) =>
+      Note(
         id: id ?? this.id,
         title: title ?? this.title,
         message: message ?? this.message,
+        getDate: getDate ?? this.getDate,
       );
   @override
   String toString() {
     return (StringBuffer('Note(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('message: $message')
+          ..write('message: $message, ')
+          ..write('getDate: $getDate')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      $mrjf($mrjc(id.hashCode, $mrjc(title.hashCode, message.hashCode)));
+  int get hashCode => $mrjf($mrjc(id.hashCode,
+      $mrjc(title.hashCode, $mrjc(message.hashCode, getDate.hashCode))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is Note &&
           other.id == this.id &&
           other.title == this.title &&
-          other.message == this.message);
+          other.message == this.message &&
+          other.getDate == this.getDate);
 }
 
 class NoteTableCompanion extends UpdateCompanion<Note> {
   final Value<int> id;
   final Value<String> title;
   final Value<String> message;
+  final Value<DateTime> getDate;
   const NoteTableCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.message = const Value.absent(),
+    this.getDate = const Value.absent(),
   });
   NoteTableCompanion.insert({
     this.id = const Value.absent(),
     @required String title,
     @required String message,
+    this.getDate = const Value.absent(),
   })  : title = Value(title),
         message = Value(message);
   static Insertable<Note> custom({
     Expression<int> id,
     Expression<String> title,
     Expression<String> message,
+    Expression<DateTime> getDate,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (message != null) 'message': message,
+      if (getDate != null) 'get_date': getDate,
     });
   }
 
   NoteTableCompanion copyWith(
-      {Value<int> id, Value<String> title, Value<String> message}) {
+      {Value<int> id,
+      Value<String> title,
+      Value<String> message,
+      Value<DateTime> getDate}) {
     return NoteTableCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       message: message ?? this.message,
+      getDate: getDate ?? this.getDate,
     );
   }
 
@@ -145,6 +174,9 @@ class NoteTableCompanion extends UpdateCompanion<Note> {
     if (message.present) {
       map['message'] = Variable<String>(message.value);
     }
+    if (getDate.present) {
+      map['get_date'] = Variable<DateTime>(getDate.value);
+    }
     return map;
   }
 
@@ -153,7 +185,8 @@ class NoteTableCompanion extends UpdateCompanion<Note> {
     return (StringBuffer('NoteTableCompanion(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('message: $message')
+          ..write('message: $message, ')
+          ..write('getDate: $getDate')
           ..write(')'))
         .toString();
   }
@@ -196,8 +229,20 @@ class $NoteTableTable extends NoteTable with TableInfo<$NoteTableTable, Note> {
     );
   }
 
+  final VerificationMeta _getDateMeta = const VerificationMeta('getDate');
+  GeneratedDateTimeColumn _getDate;
   @override
-  List<GeneratedColumn> get $columns => [id, title, message];
+  GeneratedDateTimeColumn get getDate => _getDate ??= _constructGetDate();
+  GeneratedDateTimeColumn _constructGetDate() {
+    return GeneratedDateTimeColumn(
+      'get_date',
+      $tableName,
+      true,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, title, message, getDate];
   @override
   $NoteTableTable get asDslTable => this;
   @override
@@ -223,6 +268,10 @@ class $NoteTableTable extends NoteTable with TableInfo<$NoteTableTable, Note> {
           message.isAcceptableOrUnknown(data['message'], _messageMeta));
     } else if (isInserting) {
       context.missing(_messageMeta);
+    }
+    if (data.containsKey('get_date')) {
+      context.handle(_getDateMeta,
+          getDate.isAcceptableOrUnknown(data['get_date'], _getDateMeta));
     }
     return context;
   }

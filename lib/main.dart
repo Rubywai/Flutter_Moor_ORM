@@ -26,6 +26,7 @@ class MyApp extends StatelessWidget {
                     leading: Text(notes[position].id.toString()),
                     title: Text(notes[position].title),
                     subtitle: Text(notes[position].message),
+                    trailing: Text(notes[position].getDate.toString()),
                   ),
                 );
               },

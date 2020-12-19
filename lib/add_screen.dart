@@ -34,7 +34,7 @@ class _AddScreenState extends State<AddScreen> {
             ),
           ),
           RaisedButton(onPressed: () async{
-             Note note = Note(title: _title.text,message: _message.text);
+             Note note = Note(title: _title.text,message: _message.text,getDate: DateTime.now());
               await _noteDatabase.insertNote(note);
               Navigator.pop(context);
           },
